@@ -6,23 +6,32 @@ env:
 
 phases:
   install:
+    runtime-versions:
+      docker: 20
     commands:
-      - echo Installing Trivy
+      - echo Installing Trivy...
       - wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_Linux-64bit.tar.gz
       - tar -xzf trivy_Linux-64bit.tar.gz
+      - chmod +x trivy
+      - echo Trivy installed
 
   pre_build:
     commands:
-      - echo Logging into ECR
+      - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 460351657932.dkr.ecr.ap-south-1.amazonaws.com
 
   build:
     commands:
-      - echo Secret loaded securely
+      - echo Secret loaded securely from Secrets Manager
+      - echo Building Docker image...
       - docker build -t secure-app .
+      - echo Running security scan...
       - ./trivy image secure-app
+      - echo Tagging image...
       - docker tag secure-app:latest 460351657932.dkr.ecr.ap-south-1.amazonaws.com/secure-app:latest
 
   post_build:
     commands:
+      - echo Pushing image to ECR...
       - docker push 460351657932.dkr.ecr.ap-south-1.amazonaws.com/secure-app:latest
+      - echo Build completed successfully
