@@ -1,0 +1,28 @@
+version: 0.2
+
+env:
+  secrets-manager:
+    APP_SECRET: "secure-app-config:APP_SECRET"
+
+phases:
+  install:
+    commands:
+      - echo Installing Trivy
+      - wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_Linux-64bit.tar.gz
+      - tar -xzf trivy_Linux-64bit.tar.gz
+
+  pre_build:
+    commands:
+      - echo Logging into ECR
+      - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 460351657932.dkr.ecr.ap-south-1.amazonaws.com
+
+  build:
+    commands:
+      - echo Secret loaded securely
+      - docker build -t secure-app .
+      - ./trivy image secure-app
+      - docker tag secure-app:latest 460351657932.dkr.ecr.ap-south-1.amazonaws.com/secure-app:latest
+
+  post_build:
+    commands:
+      - docker push 460351657932.dkr.ecr.ap-south-1.amazonaws.com/secure-app:latest
