@@ -20,7 +20,7 @@ phases:
     commands:
       - echo Secret loaded securely
       - docker build -t secure-app .
-      - ./trivy image secure-app
+      - ./trivy image --exit-code 1 --severity HIGH,CRITICAL secure-app
       - docker tag secure-app:latest 460351657932.dkr.ecr.ap-south-1.amazonaws.com/secure-app:latest
 
   post_build:
